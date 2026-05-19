@@ -92,7 +92,7 @@ jobs:
           git config user.name "ai-weekly-bot[bot]"
           git config user.email "bot@ai-weekly.local"
           git commit -m "content: AI Weekly ${WEEK_START}"
-          git push -u origin "$BRANCH"
+          git push -fu origin "$BRANCH"
 
           cat > pr-body.md << PRBODY
           ## AI Weekly Top 10 已生成
