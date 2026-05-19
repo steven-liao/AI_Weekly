@@ -1,4 +1,4 @@
-"""Image generation — 通义万相 (DashScope) primary, local SD fallback."""
+"""Image generation — multiple providers with free fallback options."""
 
 import logging
 import os
@@ -7,17 +7,23 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
-from dashscope import ImageSynthesis
 
 logger = logging.getLogger(__name__)
 
 
 class ImageGenerator:
     """Generates images for articles. Deduplicates by image_prompt hash to avoid
-    generating the same image twice (when the same article appears in multiple rankings)."""
+    generating the same image twice (when the same article appears in multiple rankings).
+
+    Supported providers:
+      - disabled:      No image generation, returns without image_path
+      - tongyi:        通义万相 via DashScope (¥0.06/image)
+      - pollinations:  Free, no API key needed (may be slow/unstable in mainland China)
+      - local_sd:      Free, requires GPU + SD WebUI running locally
+    """
 
     def __init__(self, config):
-        self.provider = config.images.provider  # "tongyi" or "local_sd"
+        self.provider = config.images.provider
         self.tongyi_model = config.images.tongyi_model
         self.tongyi_size = config.images.tongyi_size
         self.sd_url = config.images.local_sd_url
@@ -32,6 +38,10 @@ class ImageGenerator:
         Each article dict should have: article_id, image_prompt
         Returns the same list with image_path set.
         """
+        if self.provider == "disabled":
+            logger.info("Image generation disabled (provider=disabled)")
+            return articles_with_prompts
+
         output_path = Path(output_dir) / "images"
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -59,12 +69,14 @@ class ImageGenerator:
         return articles_with_prompts
 
     def _generate_with_retry(self, prompt: str, output_path: str, max_retries: int):
-        """Try primary method, then fallback."""
+        """Try primary method."""
         last_error = None
         for attempt in range(max_retries + 1):
             try:
                 if self.provider == "tongyi":
                     return self._generate_tongyi(prompt, output_path)
+                elif self.provider == "pollinations":
+                    return self._generate_pollinations(prompt, output_path)
                 elif self.provider == "local_sd":
                     return self._generate_local_sd(prompt, output_path)
                 else:
@@ -78,6 +90,8 @@ class ImageGenerator:
 
     def _generate_tongyi(self, prompt: str, output_path: str):
         """通义万相 via DashScope API."""
+        from dashscope import ImageSynthesis
+
         api_key = os.environ.get("DASHSCOPE_API_KEY")
         if not api_key:
             raise RuntimeError("DASHSCOPE_API_KEY not set")
@@ -104,6 +118,18 @@ class ImageGenerator:
                 f.write(img_data)
         else:
             raise RuntimeError(f"通义万相 error: {response.message} (code={response.status_code})")
+
+    def _generate_pollinations(self, prompt: str, output_path: str):
+        """Pollinations.ai — free, no API key, simply GET an image URL."""
+        import urllib.parse
+
+        encoded = urllib.parse.quote(prompt[:500])
+        img_url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&nologo=true"
+
+        resp = httpx.get(img_url, timeout=120, follow_redirects=True)
+        resp.raise_for_status()
+        with open(output_path, "wb") as f:
+            f.write(resp.content)
 
     def _generate_local_sd(self, prompt: str, output_path: str):
         """Local Stable Diffusion WebUI API."""

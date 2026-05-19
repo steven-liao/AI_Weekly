@@ -78,8 +78,10 @@ llm:
   temperature: 0.7
 
 # === 图片生成 ===
+# provider options: disabled (no images), tongyi (通义万相, ¥0.06/张), pollinations (free, no key),
+#                   local_sd (free, needs GPU + SD WebUI running), zhipu (智谱 CogView, ¥0.3/张)
 images:
-  provider: "tongyi"
+  provider: "disabled"
   tongyi_model: "wan2.1-t2i-turbo"
   tongyi_size: "1024*1024"
   # 本地 Stable Diffusion 备选

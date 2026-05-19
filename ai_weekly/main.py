@@ -150,8 +150,9 @@ def run_pipeline(config, dry_run=False, skip_images=False,
         return
 
     # ── Stage 4: Generate Images ───────────────────────────
-    if not skip_images:
-        logger.info("Stage 4: Generating images...")
+    img_enabled = not skip_images and config.images.provider != "disabled"
+    if img_enabled:
+        logger.info(f"Stage 4: Generating images (provider={config.images.provider})...")
         try:
             img_gen = create_image_generator(config)
             for alg_name in ["hotness", "impact", "freshness"]:
@@ -161,9 +162,10 @@ def run_pipeline(config, dry_run=False, skip_images=False,
                     img_gen.generate_all(arts, out_dir)
         except Exception as e:
             logger.error(f"Image generation failed: {e}", exc_info=True)
-            # Non-fatal: we can still compose without images
-    else:
+    elif skip_images:
         logger.info("Stage 4: Images skipped (--skip-images)")
+    else:
+        logger.info("Stage 4: Images disabled (provider=disabled in config)")
 
     # ── Stage 5: Compose ───────────────────────────────────
     logger.info("Stage 5: Composing newsletters...")

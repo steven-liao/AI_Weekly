@@ -115,7 +115,12 @@ def _write_xhs_text(path: Path, articles: list[dict], alg_label: str, week: str)
     lines.append("")
     lines.append("#AI #人工智能 #科技资讯 #每周AI #AI前沿")
     lines.append("")
-    lines.append("📸 配图已生成，请配合图片以图文笔记形式发布")
+    # Only mention images if any were generated
+    has_images = any(art.get("image_path") for art in articles)
+    if has_images:
+        lines.append("📸 配图已生成，请配合图片以图文笔记形式发布")
+    else:
+        lines.append("📸 配图未生成，可以纯文字发布或用 emoji 装饰")
 
     path.write_text("\n".join(lines), encoding="utf-8")
 
