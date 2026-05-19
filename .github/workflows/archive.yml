@@ -3,7 +3,7 @@ name: Archive on Merge
 on:
   pull_request:
     types: [closed]
-    branches: [main]
+    branches: [master]
     paths:
       - "output/**"
 
@@ -14,9 +14,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: master
       - name: Create Tag
         env:
           GH_TOKEN: ${{ github.token }}
