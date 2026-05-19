@@ -15,7 +15,6 @@ data/*.db
 
 # Workspace (temp)
 workspace/
-output/
 
 # Claude
 .claude/
