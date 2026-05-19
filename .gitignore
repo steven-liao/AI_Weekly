@@ -10,8 +10,8 @@ venv/
 # Environment
 .env
 
-# Data
-data/*.db
+# Data (local SQLite DB — not committed)
+data/
 
 # Workspace (temp)
 workspace/

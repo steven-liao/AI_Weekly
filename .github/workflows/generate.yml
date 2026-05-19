@@ -81,6 +81,7 @@ jobs:
         run: |
           WEEK_START=${{ steps.pipeline.outputs.week_start }}
           BRANCH="content/${WEEK_START}"
+          git clean -fd  # remove any untracked artifacts from pipeline
           git checkout -b "$BRANCH"
           git add "output/${WEEK_START}/"
 
