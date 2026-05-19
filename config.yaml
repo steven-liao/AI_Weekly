@@ -1,0 +1,97 @@
+# AI Weekly Top 10 — Configuration
+# 所有 API Key 通过环境变量注入，不写在这里
+
+# === 数据源 ===
+sources:
+  hackernews:
+    enabled: true
+    max_items: 30
+    min_points: 10           # 过滤低于此分数的帖子
+  reddit:
+    enabled: true
+    subreddits:
+      - MachineLearning
+      - artificial
+      - singularity
+    max_per_subreddit: 25
+  rss:
+    enabled: true
+    feeds:
+      - https://techcrunch.com/category/artificial-intelligence/feed/
+      - https://venturebeat.com/category/ai/feed/
+      - https://www.theverge.com/ai-artificial-intelligence/rss.xml
+  arxiv:
+    enabled: true
+    categories:
+      - cs.AI
+      - cs.LG
+      - cs.CL
+    max_results: 50
+  gnews:
+    enabled: true
+    max_items: 20
+  chinese:
+    enabled: false
+    sources:
+      - name: jiqizhixin
+        url: https://www.jiqizhixin.com/rss
+      - name: qbitai
+        url: https://www.qbitai.com/feed
+
+# === 三种算法权重 ===
+scoring:
+  algorithms:
+    hotness:
+      upvote_weight: 0.5
+      comment_weight: 0.3
+      popularity_ratio: 0.7
+      recency_halflife_hours: 24
+      source_weights:
+        hackernews: 1.05
+        reddit: 1.0
+        rss: 0.65
+        arxiv: 0.55
+        gnews: 0.60
+    impact:
+      authority_ratio: 0.65
+      recency_halflife_hours: 48
+      keyword_boost: 0.2
+      source_credibility:
+        techcrunch: 0.95
+        venturebeat: 0.85
+        arxiv: 0.90
+        reddit: 0.50
+        hackernews: 0.70
+        theverge: 0.85
+    freshness:
+      freshness_decay: 0.8
+      recency_ratio: 0.65
+      surprise_ratio: 0.2
+      social_ratio: 0.15
+
+# === LLM 配置 ===
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  api_base: "https://api.deepseek.com"
+  max_tokens: 4096
+  temperature: 0.7
+
+# === 图片生成 ===
+images:
+  provider: "tongyi"
+  tongyi_model: "wan2.1-t2i-turbo"
+  tongyi_size: "1024*1024"
+  # 本地 Stable Diffusion 备选
+  local_sd_url: "http://127.0.0.1:7860"
+  local_sd_model: "sd_xl_base_1.0"
+
+# === 调度 ===
+schedule:
+  lookback_days: 7
+
+# === 代理（本地调试用，GitHub Actions 不需要）===
+proxy:
+  enabled: false
+  http: "http://127.0.0.1:7890"
+  https: "http://127.0.0.1:7890"

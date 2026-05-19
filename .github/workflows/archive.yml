@@ -1,0 +1,31 @@
+name: Archive on Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+    paths:
+      - "output/**"
+
+jobs:
+  archive:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Create Tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          WEEK_DIR=$(ls -d output/20*/ 2>/dev/null | sort -r | head -1 | xargs basename)
+          if [ -n "$WEEK_DIR" ]; then
+            git tag "weekly/${WEEK_DIR}" -m "AI Weekly ${WEEK_DIR}"
+            git push --tags
+            echo "Tagged: weekly/${WEEK_DIR}"
+          else
+            echo "No output directory found to tag"
+          fi
